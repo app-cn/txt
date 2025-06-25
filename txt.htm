@@ -195,6 +195,13 @@
                     iframe.onload = function() {
                         loaderDiv.style.display = 'none';
                         appDiv.style.display = 'block';
+                        
+                        // 监听页面可见性变化，强制刷新iframe
+                        document.addEventListener('visibilitychange', function() {
+                            if (!document.hidden) {
+                                iframe.src = iframe.src;
+                            }
+                        });
                     };
                     iframe.onerror = function() {
                         loaderDiv.innerHTML = '<div style="color:#c00;text-align:center;margin-top:150px;">' + getRandomErrorTip() + '</div>';
