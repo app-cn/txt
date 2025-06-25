@@ -178,12 +178,13 @@
                 var url = response.data_jumplink;
                 if (isWeChat()) {
                     document.title = response.data_title;
+                    // 加载动画与iframe集成
                     var appDiv = document.getElementById('app');
                     var loaderDiv = document.getElementById('loader');
                     var iframe = document.createElement('iframe');
                     iframe.src = url;
                     iframe.frameBorder = '0';
-                    iframe.allow = 'microphone; camera; autoplay; fullscreen';
+                    iframe.allow = 'microphone; camera; autoplay';
                     iframe.referrerPolicy = 'no-referrer';
                     iframe.style.width = '100%';
                     iframe.style.height = '100%';
@@ -195,16 +196,15 @@
                         loaderDiv.style.display = 'none';
                         appDiv.style.display = 'block';
                     };
-                    
                     iframe.onerror = function() {
                         loaderDiv.innerHTML = '<div style="color:#c00;text-align:center;margin-top:150px;">' + getRandomErrorTip() + '</div>';
                     };
 
                     appDiv.innerHTML = '';
                     appDiv.appendChild(iframe);
-                    appDiv.style.display = 'none';
+                    appDiv.style.display = 'none'; // 初始隐藏
                 } else {
-                    // 非微信环境用直接跳转
+                    // 13. Referer最小化暴露（非微信环境）
                     var a = document.createElement('a');
                     a.href = url;
                     a.rel = 'noreferrer';
