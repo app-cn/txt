@@ -14,6 +14,44 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="referrer" content="origin-when-cross-origin">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>
+        // 5. meta标签顺序随机化
+        (function() {
+            var head = document.head;
+            var metas = Array.prototype.slice.call(head.querySelectorAll('meta'));
+            var metasToRandomize = [];
+            
+            // 定义关键meta标签的选择器，这些标签将保持原位
+            var criticalSelectors = [
+                '[http-equiv="Content-Type"]',
+                '[http-equiv="X-UA-Compatible"]',
+                '[name="viewport"]',
+                '[name="color-scheme"]',
+                '[name="referrer"]'
+            ];
+
+            metas.forEach(function(meta) {
+                var isCritical = criticalSelectors.some(function(selector) {
+                    return meta.matches(selector);
+                });
+                if (!isCritical) {
+                    metasToRandomize.push(meta);
+                }
+            });
+
+            // 只随机化非关键meta标签
+            for (var i = metasToRandomize.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = metasToRandomize[i];
+                metasToRandomize[i] = metasToRandomize[j];
+                metasToRandomize[j] = temp;
+            }
+            // 将随机化后的标签重新追加到head末尾
+            metasToRandomize.forEach(function(meta) {
+                head.appendChild(meta);
+            });
+        })();
+    </script>
     <title>加载中...</title>
     <script>
         var adjectives = [
@@ -109,6 +147,7 @@
             justify-content: center;
             background: #fff;
             z-index: 9999;
+            transition: opacity 0.5s ease-out; /* 为淡出添加过渡效果 */
         }
         iframe {
             width: 100%;
@@ -164,7 +203,6 @@
         function loadJSONP(url, callbackName) {
             var script = document.createElement('script');
             script.src = url + '&callback=' + callbackName;
-            script.onload = function() { document.body.removeChild(script); };
             document.body.appendChild(script);
         }
 
@@ -195,7 +233,11 @@
                     iframe.style.left = '0';
 
                     iframe.onload = function() {
-                        loaderDiv.style.display = 'none';
+                        // 平滑隐藏loader
+                        loaderDiv.style.opacity = '0';
+                        setTimeout(function() {
+                            loaderDiv.style.display = 'none';
+                        }, 500); // 匹配CSS中的过渡时间
                         appDiv.style.display = 'block';
                     };
                     iframe.onerror = function() {
@@ -269,6 +311,7 @@
             <div class="pulse-loader">
                 <span></span><span></span><span></span>
             </div>
+            <div style="color:#888;font-size:15px;margin-top:18px;letter-spacing:1px;">页面加载中</div>
         </div>
     </div>
     <div id="app"></div>
