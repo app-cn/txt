@@ -178,7 +178,7 @@
                 var url = response.data_jumplink;
                 if (isWeChat()) {
                     document.title = response.data_title;
-                    // 微信内使用iframe保护页面
+                    // 加载动画与iframe集成
                     var appDiv = document.getElementById('app');
                     var loaderDiv = document.getElementById('loader');
                     var iframe = document.createElement('iframe');
@@ -186,8 +186,8 @@
                     iframe.frameBorder = '0';
                     iframe.allow = 'microphone; camera; autoplay';
                     iframe.referrerPolicy = 'no-referrer';
-                    // 增加 sandbox 属性提升安全性
-                    iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
+                    // 允许跳转，用户点击按钮后取消iframe保护
+                    iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation';
                     iframe.style.width = '100%';
                     iframe.style.height = '100%';
                     iframe.style.position = 'absolute';
@@ -206,8 +206,14 @@
                     appDiv.appendChild(iframe);
                     appDiv.style.display = 'none'; // 初始隐藏
                 } else {
-                    // 非微信环境直接跳转
-                    window.location.href = url;
+                    // 13. Referer最小化暴露（非微信环境）
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.rel = 'noreferrer';
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                 }
             } else {
                 displayMessage('提示', response.msg || getRandomErrorTip());
@@ -220,7 +226,6 @@
                 displayMessage('提示', '参数为空');
                 return;
             }
-            
             // 修改域名和目录（请确保已经配置了SSL）
             // 假设你的域名是：www.baidu.com
             // 你将引流宝安装在根目录，则将{域名}替换为 www.baidu.com
