@@ -186,8 +186,8 @@
                     iframe.frameBorder = '0';
                     iframe.allow = 'microphone; camera; autoplay';
                     iframe.referrerPolicy = 'no-referrer';
-                    // 允许跳转，用户点击按钮后取消iframe保护
-                    iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation';
+                    // 增加 sandbox 属性提升安全性
+                    iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
                     iframe.style.width = '100%';
                     iframe.style.height = '100%';
                     iframe.style.position = 'absolute';
@@ -197,6 +197,34 @@
                     iframe.onload = function() {
                         loaderDiv.style.display = 'none';
                         appDiv.style.display = 'block';
+                        
+                        // 监听iframe内的跳转事件，跳转后移除iframe保护
+                        try {
+                            var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            var iframeWindow = iframe.contentWindow;
+                            
+                            // 监听页面跳转
+                            iframeWindow.addEventListener('beforeunload', function() {
+                                // 页面即将跳转时，移除iframe保护
+                                appDiv.innerHTML = '';
+                                appDiv.style.display = 'none';
+                            });
+                            
+                            // 监听点击事件，检测是否要跳转
+                            iframeDoc.addEventListener('click', function(e) {
+                                var target = e.target;
+                                if (target.tagName === 'A' || target.closest('a')) {
+                                    // 检测到链接点击，准备移除iframe保护
+                                    setTimeout(function() {
+                                        appDiv.innerHTML = '';
+                                        appDiv.style.display = 'none';
+                                    }, 100);
+                                }
+                            }, true);
+                        } catch (e) {
+                            // 跨域限制时的处理
+                            console.log('无法直接访问iframe内容');
+                        }
                     };
                     iframe.onerror = function() {
                         loaderDiv.innerHTML = '<div style="color:#c00;text-align:center;margin-top:150px;">' + getRandomErrorTip() + '</div>';
